@@ -55,6 +55,7 @@ class MainWindow(QWidget):
 
         # SUBSCRIBE BUTTON
         self.subscribe_btn = QPushButton("Subscribe Topic")
+        self.unsubscribe_btn = QPushButton("Unsubscribe Topic")
 
         # LOG
         self.log = QTextEdit()
@@ -71,6 +72,7 @@ class MainWindow(QWidget):
         layout.addWidget(QLabel("Topic"))
         layout.addWidget(self.topic_input)
         layout.addWidget(self.subscribe_btn)
+        layout.addWidget(self.unsubscribe_btn)
         layout.addWidget(self.log)
         layout.addWidget(self.message_input)
         layout.addWidget(self.send_btn)
@@ -90,6 +92,7 @@ class MainWindow(QWidget):
 
         # BUTTON EVENT
         self.subscribe_btn.clicked.connect(self.subscribe_topic)
+        self.unsubscribe_btn.clicked.connect(self.unsubscribe_topic)
         self.send_btn.clicked.connect(self.send_message)
 
         # CURRENT TOPIC
@@ -143,7 +146,22 @@ class MainWindow(QWidget):
 
         self.add_log(f"Subscribed: {topic}")
 
-    # =========================
+    #
+    # UNSUBSCRIBE
+    def unsubscribe_topic(self):
+        topic = self.topic_input.text().strip()
+
+        if not topic:
+            return
+
+        self.client.unsubscribe(topic)
+
+        self.add_log(f"unsubscribe topic: {topic}")
+
+        # reset current topic jika sama
+        if self.current_topic == topic:
+            self.current_topic = ""
+
     # SEND MESSAGE
     # =========================
     def send_message(self):
