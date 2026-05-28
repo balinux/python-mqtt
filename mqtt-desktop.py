@@ -14,12 +14,15 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Signal, QObject
 
 
-# signal bridge
+# =========================
+# SIGNALS
+# =========================
 class MqttSignals(QObject):
     message_received = Signal(str)
 
 
 signals = MqttSignals()
+
 
 # =========================
 # MQTT CONFIG
@@ -30,38 +33,39 @@ PORT = 1883
 USERNAME = "4c"
 PASSWORD = "123123"
 
-# TOPIC = "kampus/suhu"
-
 
 # =========================
 # GUI
 # =========================
-#
 class MainWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("PySide6 MQTT Client")
-        self.resize(500, 400)
+        self.setWindowTitle("Dynamic MQTT Topic")
+        self.resize(600, 500)
 
         layout = QVBoxLayout()
 
+        # STATUS
         self.status = QLabel("Disconnected")
 
-        # topic input
+        # TOPIC INPUT
         self.topic_input = QLineEdit()
-        self.topic_input.setPlaceholderText("Masukkan Topic")
+        self.topic_input.setPlaceholderText("Masukkan topic")
 
-        # subscribe button
-        self.subscribe_btn = QPushButton("subscribe topic")
+        # SUBSCRIBE BUTTON
+        self.subscribe_btn = QPushButton("Subscribe Topic")
 
+        # LOG
         self.log = QTextEdit()
         self.log.setReadOnly(True)
 
+        # MESSAGE INPUT
         self.message_input = QLineEdit()
-        self.message_input.setPlaceholderText("Ketik pesan...")
+        self.message_input.setPlaceholderText("Ketik pesan")
 
-        self.send_btn = QPushButton("Send")
+        # SEND BUTTON
+        self.send_btn = QPushButton("Send Message")
 
         layout.addWidget(self.status)
         layout.addWidget(QLabel("Topic"))
@@ -73,7 +77,7 @@ class MainWindow(QWidget):
 
         self.setLayout(layout)
 
-        # MQTT Setup
+        # MQTT CLIENT
         self.client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 
         self.client.username_pw_set(USERNAME, PASSWORD)
@@ -84,61 +88,49 @@ class MainWindow(QWidget):
         # SIGNAL
         signals.message_received.connect(self.add_log)
 
-        # BUTTON
-        self.send_btn.clicked.connect(self.send_message)
-
         # BUTTON EVENT
         self.subscribe_btn.clicked.connect(self.subscribe_topic)
+        self.send_btn.clicked.connect(self.send_message)
 
-        # current topic
+        # CURRENT TOPIC
         self.current_topic = ""
 
-        # CONNECT MQTT
+        # CONNECT
         self.connect_mqtt()
 
+    # =========================
+    # CONNECT MQTT
+    # =========================
     def connect_mqtt(self):
         try:
             self.client.connect(BROKER, PORT, 60)
-
-            # MQTT loop di background thread
             self.client.loop_start()
 
         except Exception as e:
             self.add_log(f"ERROR: {e}")
 
+    # =========================
+    # ON CONNECT
+    # =========================
     def on_connect(self, client, userdata, flags, rc, properties=None):
         if rc == 0:
             self.status.setText("Connected")
-
-            signals.message_received.emit("Connected to MQTT broker")
+            signals.message_received.emit("Connected to MQTT Broker")
 
         else:
             signals.message_received.emit(f"Failed: {rc}")
 
+    # =========================
+    # RECEIVE MESSAGE
+    # =========================
     def on_message(self, client, userdata, msg):
         text = msg.payload.decode()
 
-        signals.message_received.emit(f"[{msg.topic}] : {text}")
+        signals.message_received.emit(f"[{msg.topic}] {text}")
 
-    def send_message(self):
-        message = self.message_input.text().strip()
-
-        if not message:
-            return
-
-        if not self.current_topic:
-            self.add_log("Topic belum di tambah")
-            return
-
-        self.client.publish(self.current_topic, message)
-
-        self.add_log(f"[YOU -> {self.current_topic}] {message}")
-        self.message_input.clear()
-
-    def add_log(self, text):
-        self.log.append(text)
-
-    # subscribe EVENT
+    # =========================
+    # SUBSCRIBE
+    # =========================
     def subscribe_topic(self):
         topic = self.topic_input.text().strip()
 
@@ -146,8 +138,35 @@ class MainWindow(QWidget):
             return
 
         self.client.subscribe(topic)
+
         self.current_topic = topic
-        self.add_log(f"subscribe: {topic}")
+
+        self.add_log(f"Subscribed: {topic}")
+
+    # =========================
+    # SEND MESSAGE
+    # =========================
+    def send_message(self):
+        message = self.message_input.text().strip()
+
+        if not message:
+            return
+
+        if not self.current_topic:
+            self.add_log("Topic belum dipilih")
+            return
+
+        self.client.publish(self.current_topic, message)
+
+        self.add_log(f"[YOU -> {self.current_topic}] {message}")
+
+        self.message_input.clear()
+
+    # =========================
+    # LOG
+    # =========================
+    def add_log(self, text):
+        self.log.append(text)
 
 
 # =========================
