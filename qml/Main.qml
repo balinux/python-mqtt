@@ -6,12 +6,22 @@ import QtQuick.Layouts
 ApplicationWindow {
     visible: true
     width: 1200
-    height: 700
+    height: 720
 
     title: "MQTT Desktop"
 
     Material.theme: Material.Dark
     Material.accent: Material.Teal
+
+    property bool connected: false
+
+    Connections {
+        target: mqttManager
+
+        function onConnectionChanged(state) {
+            connected = state
+        }
+    }
 
     RowLayout {
         anchors.fill: parent
@@ -20,30 +30,46 @@ ApplicationWindow {
         Rectangle {
             Layout.preferredWidth: 320
             Layout.fillHeight: true
-
-            color: "#1E1E1E"
+            color: "#1b1b1b"
 
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 20
-                spacing: 15
 
                 Label {
-                    text: "MQTT Broker"
+                    text: "MQTT Desktop"
                     font.pixelSize: 24
                     font.bold: true
                 }
 
                 Rectangle {
                     Layout.fillWidth: true
-                    height: 50
-                    radius: 8
-                    color: "#2D2D2D"
+                    height: 60
+                    radius: 12
 
-                    Label {
+                    color: connected
+                        ? "#133b24"
+                        : "#4d1f1f"
+
+                    Row {
                         anchors.centerIn: parent
-                        text: "Disconnected"
-                        color: "#ff6b6b"
+                        spacing: 10
+
+                        Rectangle {
+                            width: 12
+                            height: 12
+                            radius: 6
+
+                            color: connected
+                                ? "#00ff66"
+                                : "#ff4444"
+                        }
+
+                        Label {
+                            text: connected
+                                ? "Connected"
+                                : "Disconnected"
+                        }
                     }
                 }
 
@@ -88,12 +114,6 @@ ApplicationWindow {
                     }
                 }
 
-                Rectangle {
-                    Layout.fillWidth: true
-                    height: 1
-                    color: "#404040"
-                }
-
                 Label {
                     text: "Topic"
                     font.bold: true
@@ -112,18 +132,22 @@ ApplicationWindow {
                         Layout.fillWidth: true
                         text: "Subscribe"
 
-                        onClicked: mqttManager.subscribeTopic(
-                            topicInput.text
-                        )
+                        onClicked: {
+                            mqttManager.subscribeTopic(
+                                topicInput.text
+                            )
+                        }
                     }
 
                     Button {
                         Layout.fillWidth: true
                         text: "Unsubscribe"
 
-                        onClicked: mqttManager.unsubscribeTopic(
-                            topicInput.text
-                        )
+                        onClicked: {
+                            mqttManager.unsubscribeTopic(
+                                topicInput.text
+                            )
+                        }
                     }
                 }
 
@@ -142,32 +166,97 @@ ApplicationWindow {
             ColumnLayout {
                 anchors.fill: parent
                 anchors.margins: 20
-                spacing: 15
 
                 Label {
-                    text: "Message Console"
-                    font.pixelSize: 24
+                    text: "Messages"
+                    font.pixelSize: 22
                     font.bold: true
                 }
 
-                ScrollView {
+                ListView {
+                    id: logView
+
                     Layout.fillWidth: true
                     Layout.fillHeight: true
 
-                    TextArea {
-                        id: logArea
-                        readOnly: true
+                    model: logModel
 
-                        color: "#FFFFFF"
-                        font.family: "JetBrains Mono"
+                    spacing: 10
+
+              delegate: Item {
+
+    width: logView.width
+    height: bubble.height + 10
+
+    Rectangle {
+        id: bubble
+
+        anchors.left: parent.left
+        anchors.leftMargin: 10
+
+        width: Math.min(
+            parent.width * 0.8,
+            textItem.implicitWidth + 40
+        )
+
+        height: contentColumn.implicitHeight + 20
+
+        radius: 12
+
+        color: {
+            if(type === "send")
+                return "#005C97"
+
+            if(type === "receive")
+                return "#2E2E2E"
+
+            if(type === "success")
+                return "#0E6B3F"
+
+            if(type === "error")
+                return "#7A2424"
+
+            return "#333333"
+        }
+
+        Column {
+            id: contentColumn
+
+            anchors.fill: parent
+            anchors.margins: 10
+
+            spacing: 4
+
+            Label {
+                text: time
+                font.pixelSize: 10
+                opacity: 0.6
+            }
+
+            Text {
+                id: textItem
+
+                text: message
+
+                color: "white"
+
+                wrapMode: Text.WordWrap
+
+                width: bubble.width - 20
+            }
+        }
+    }
+}
+                    onCountChanged: {
+                        positionViewAtEnd()
                     }
                 }
 
                 Rectangle {
                     Layout.fillWidth: true
                     height: 70
-                    radius: 10
-                    color: "#2D2D2D"
+                    radius: 12
+                    color: "#2d2d2d"
 
                     RowLayout {
                         anchors.fill: parent
@@ -176,7 +265,17 @@ ApplicationWindow {
                         TextField {
                             id: messageInput
                             Layout.fillWidth: true
-                            placeholderText: "Write message..."
+
+                            placeholderText:
+                                "Type message..."
+
+                            onAccepted: {
+                                mqttManager.publishMessage(
+                                    text
+                                )
+
+                                clear()
+                            }
                         }
 
                         Button {
@@ -193,14 +292,6 @@ ApplicationWindow {
                     }
                 }
             }
-        }
-    }
-
-    Connections {
-        target: mqttManager
-
-        function onLogMessage(message) {
-            logArea.text += message + "\n"
         }
     }
 }

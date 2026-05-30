@@ -9,9 +9,17 @@ app = QGuiApplication(sys.argv)
 
 engine = QQmlApplicationEngine()
 
-mqtt = MqttManager()
+mqttManager = MqttManager()
 
-engine.rootContext().setContextProperty("mqttManager", mqtt)
+engine.rootContext().setContextProperty(
+    "mqttManager",
+    mqttManager,
+)
+
+engine.rootContext().setContextProperty(
+    "logModel",
+    mqttManager.logModel,
+)
 
 engine.load("qml/Main.qml")
 
