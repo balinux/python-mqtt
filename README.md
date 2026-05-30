@@ -1,57 +1,80 @@
 # Python MQTT Client
 
-Sebuah aplikasi MQTT Client sederhana yang dibuat menggunakan Python. Proyek ini mencakup antarmuka grafis (GUI) menggunakan PySide6 dan skrip sederhana berbasis console.
+Aplikasi MQTT Client sederhana namun fungsional yang dibangun dengan Python. Proyek ini menyediakan dua antarmuka: GUI modern menggunakan **PySide6 (Qt for Python) + QML** dan skrip konsol sederhana.
 
-## Fitur
+## 📸 Preview
+![Capture Preview](capture.png)
 
-- **GUI Client (`main.py`):**
-  - Koneksi ke MQTT Broker dengan Host, Port, Username, dan Password.
-  - Subscribe ke banyak topic secara dinamis.
-  - Unsubscribe dari topic.
-  - Mengirim pesan ke topic yang dipilih.
-  - Log aktivitas dan pesan masuk secara real-time.
-- **Simple Client (`simple.py`):**
-  - Skrip dasar untuk koneksi dan subscribe ke topic tertentu secara otomatis.
+## 📂 Struktur Proyek
 
-## Prasyarat
+- `main.py`: Entry point utama untuk aplikasi GUI.
+- `mqtt_manager.py`: Logika inti MQTT dan model data untuk UI. Menggunakan `paho-mqtt` v2.
+- `qml/Main.qml`: Definisi antarmuka pengguna menggunakan QML dengan tema Material Dark.
+- `simple.py`: Skrip konsol dasar untuk pengujian koneksi cepat.
+- `requirements.txt`: Daftar dependensi Python yang diperlukan.
+- `.gitignore`: Mengabaikan file yang tidak diperlukan (pycache, .venv, dll).
 
-Sebelum menjalankan proyek ini, pastikan Anda memiliki Python terinstal di sistem Anda.
+## ✨ Fitur
 
-## Instalasi
+### GUI Client (`main.py`)
+- **Antarmuka Modern**: Menggunakan Material Design (Dark Theme) yang responsif.
+- **Manajemen Koneksi**: Mendukung Host, Port, serta autentikasi Username dan Password.
+- **Log Real-time**:
+  - Auto-scroll ke pesan terbaru.
+  - Indikator warna berdasarkan tipe aktivitas:
+    - 🔵 Biru: Pesan Terkirim (`send`)
+    - ⚪ Abu-abu: Pesan Diterima (`receive`)
+    - 🟢 Hijau: Status Berhasil (`success`)
+    - 🔴 Merah: Status Error/Terputus (`error`)
+- **Interaksi Topic**:
+  - Subscribe dan Unsubscribe topic secara dinamis.
+  - Publish pesan ke topic yang sedang aktif.
 
-1. Clone repositori ini atau download source code-nya.
-2. Buat dan aktifkan virtual environment (opsional tapi disarankan):
+### Simple Client (`simple.py`)
+- Koneksi otomatis ke broker lokal.
+- Contoh dasar penggunaan callback `on_connect` dan `on_message`.
+
+## 🛡️ Catatan Keamanan
+
+> [!WARNING]
+> Proyek ini memiliki kredensial hardcoded di dalam `simple.py` untuk tujuan demonstrasi. Untuk penggunaan produksi, disarankan menggunakan variabel lingkungan (`.env`) atau input user yang aman. Jangan membagikan file yang berisi password asli ke publik.
+
+## 🚀 Instalasi
+
+1. **Clone Repositori**:
+   ```bash
+   git clone <repository-url>
+   cd python-mqtt
+   ```
+
+2. **Persiapkan Virtual Environment**:
    ```bash
    python -m venv .venv
-   source .venv/bin/activate  # Untuk Linux/macOS
+   source .venv/bin/activate  # Linux/macOS
    # atau
-   .venv\Scripts\activate     # Untuk Windows
+   .venv\Scripts\activate     # Windows
    ```
-3. Instal dependensi yang diperlukan:
+
+3. **Instal Dependensi**:
    ```bash
    pip install -r requirements.txt
    ```
 
-## Cara Penggunaan
+## 📖 Cara Penggunaan
 
-### Menjalankan GUI Client
-Jalankan perintah berikut untuk membuka aplikasi antarmuka grafis:
+### Aplikasi GUI
 ```bash
 python main.py
 ```
 
-### Menjalankan Simple Client
-Jalankan perintah berikut untuk menjalankan skrip console sederhana:
+### Skrip Konsol
 ```bash
 python simple.py
 ```
 
-## Preview GUI
-![Capture Preview](capture.webp)
+## 🛠️ Dependensi Utama
+- [paho-mqtt](https://pypi.org/project/paho-mqtt/) (v2.x)
+- [PySide6](https://pypi.org/project/PySide6/) (Qt for Python)
 
-## Dependensi Utama
-- [paho-mqtt](https://pypi.org/project/paho-mqtt/) - Client library untuk protokol MQTT.
-- [PySide6](https://pypi.org/project/PySide6/) - Library GUI Qt untuk Python.
-
-## Lisensi
+## 📝 Lisensi
 Proyek ini bersifat open-source. Silakan gunakan dan modifikasi sesuai kebutuhan.
